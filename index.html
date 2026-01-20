@@ -183,7 +183,7 @@
 
             <div class="projection-controls">
                 <span><strong>2027 Yılı Artış Hızı (%):</strong></span>
-                <input type="number" id="projRate" value="35" title="Örn: 100 girilirse 2026 ile aynı hızda artar.">
+                <input type="number" id="projRate" value="10" title="Örn: 100 girilirse 2026 ile aynı hızda artar.">
                 <button class="btn-update" onclick="updateProjection()"><i class="fas fa-sync-alt"></i> Tabloyu Güncelle</button>
                 <span style="font-size:0.8em; color:#666; margin-left:auto;">(100=Aynı Trend, 0=Sabit Kur, 50=Yarı Hız)</span>
             </div>
@@ -268,18 +268,18 @@
     
     // 2026 Baz Verileri
     const BASE_2026_RATES = [
-        { month: "Oca", year: 2026, usd: 44.30, eur: 53.16 },
-        { month: "Şub", year: 2026, usd: 45.10, eur: 54.28 },
+        { month: "Oca", year: 2026, usd: 43.70, eur: 51.15 },
+        { month: "Şub", year: 2026, usd: 43.50, eur: 54.30 },
         { month: "Mar", year: 2026, usd: 45.90, eur: 55.40 },
-        { month: "Nis", year: 2026, usd: 46.70, eur: 56.51 },
-        { month: "May", year: 2026, usd: 47.60, eur: 57.62 },
-        { month: "Haz", year: 2026, usd: 48.40, eur: 58.74 },
-        { month: "Tem", year: 2026, usd: 49.30, eur: 59.86 },
-        { month: "Ağu", year: 2026, usd: 50.20, eur: 60.97 },
-        { month: "Eyl", year: 2026, usd: 51.20, eur: 62.09 },
+        { month: "Nis", year: 2026, usd: 46.55, eur: 56.50 },
+        { month: "May", year: 2026, usd: 47.60, eur: 57.60 },
+        { month: "Haz", year: 2026, usd: 48.40, eur: 58.70 },
+        { month: "Tem", year: 2026, usd: 49.30, eur: 59.80 },
+        { month: "Ağu", year: 2026, usd: 50.20, eur: 60.95 },
+        { month: "Eyl", year: 2026, usd: 51.20, eur: 62.10 },
         { month: "Eki", year: 2026, usd: 52.00, eur: 63.20 },
-        { month: "Kas", year: 2026, usd: 52.80, eur: 64.42 },
-        { month: "Ara", year: 2026, usd: 53.50, eur: 64.74 },
+        { month: "Kas", year: 2026, usd: 52.80, eur: 64.40 },
+        { month: "Ara", year: 2026, usd: 53.50, eur: 64.75 },
     ];
 
     let activeRates = [];
