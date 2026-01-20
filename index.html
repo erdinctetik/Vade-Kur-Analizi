@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dinamik Satınalma Karar Aracı | v5.5 Final</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #1e3a8a; /* Koyu Lacivert */
+            --primary-light: #3b82f6;
+            --secondary: #10b981; /* Zümrüt Yeşili */
+            --danger: #ef4444;
+            --bg-color: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+            --border: #e5e7eb;
+            --accent-yellow: #f59e0b;
+        }
+
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 20px; line-height: 1.5; font-size: 14px; }
+        
+        .container { max-width: 1200px; margin: 0 auto; background: var(--card-bg); border-radius: 12px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); overflow: hidden; }
+        
+        /* Header */
+        .app-header { background: linear-gradient(135deg, var(--primary) 0%, #1e40af 100%); color: white; padding: 20px 30px; display: flex; justify-content: space-between; align-items: center; }
+        .app-title h1 { margin: 0; font-size: 1.4rem; font-weight: 700; }
+        .header-meta { text-align: right; font-size: 0.8rem; opacity: 0.9; }
+
+        /* Info Alert Box */
+        .info-alert { background: #ecfdf5; border-left: 4px solid var(--secondary); padding: 15px; margin: 20px 20px 0 20px; border-radius: 4px; display: flex; gap: 15px; font-size: 0.9rem; color: #065f46; align-items: flex-start; }
+
+        /* Accordion Settings */
+        .settings-accordion { border: 1px solid var(--border); border-radius: 8px; margin: 20px; overflow: hidden; }
+        .accordion-header { background: #f8fafc; padding: 15px 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 600; color: var(--primary); transition: background 0.2s; }
+        .accordion-header:hover { background: #f1f5f9; }
+        .accordion-content { padding: 20px; display: none; background: white; border-top: 1px solid var(--border); }
+        .accordion-content.active { display: block; }
+
+        .settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+
+        /* Inputs */
+        .input-group label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 5px; }
+        .input-group input, .input-group select { width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box; font-family: 'Inter', sans-serif; transition: all 0.2s; }
+        .input-group input:focus { border-color: var(--primary-light); outline: none; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+        
+        /* TCMB Button */
+        .btn-tcmb { background: #334155; color: white; width: 100%; padding: 10px; border-radius: 6px; border: none; cursor: pointer; font-size: 0.85rem; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; }
+        .btn-tcmb:hover { background: #1e293b; }
+
+        /* PROJECTION TABLE STYLE */
+        .projection-controls { display: flex; align-items: center; gap: 10px; background: #fffbeb; padding: 10px; border: 1px solid #fcd34d; border-radius: 6px; margin-bottom: 10px; font-size: 0.9rem; }
+        .projection-controls input { width: 60px; padding: 5px; border: 1px solid #d1d5db; border-radius: 4px; text-align: center; }
+        .btn-update { background: var(--accent-yellow); color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: 600; }
+        .btn-update:hover { background: #d97706; }
+
+        .projection-wrapper { max-height: 300px; overflow-y: auto; border: 1px solid var(--border); border-radius: 6px; }
+        .proj-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        .proj-table th { background: #e0f2fe; position: sticky; top: 0; z-index: 10; padding: 8px; text-align: left; color: var(--primary); }
+        .proj-table td { padding: 5px 8px; border-bottom: 1px solid #f1f5f9; }
+        .proj-table input { width: 100%; padding: 5px; border: 1px solid #cbd5e1; border-radius: 4px; text-align: right; }
+        .proj-table tr:hover { background-color: #f8fafc; }
+        
+        .projected-row input { color: #dc2626; font-style: italic; font-weight: 500; }
+
+        /* Main Offer Table */
+        .table-responsive { overflow-x: auto; margin: 20px; border: 1px solid var(--border); border-radius: 8px; }
+        .main-table { width: 100%; border-collapse: collapse; min-width: 800px; }
+        .main-table th { background: #f9fafb; padding: 12px; text-align: left; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); border-bottom: 2px solid var(--border); }
+        .main-table td { padding: 10px; border-bottom: 1px solid var(--border); }
+        
+        /* Currency Wrapper Fix */
+        .currency-wrapper { display: flex; gap: 5px; width: 100%; }
+        .currency-select { flex-grow: 1; width: auto; }
+        .type-select { flex: 0 0 70px; font-weight: bold; text-align: center; padding: 8px 2px !important; }
+
+        /* Buttons */
+        .btn { padding: 10px 20px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 5px; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: #1e3a8a; transform: translateY(-1px); }
+        .btn-add { background: var(--secondary); color: white; margin-left: 20px; }
+        .btn-add:hover { background: #059669; }
+        .btn-danger { background: #fee2e2; color: var(--danger); padding: 6px 10px; }
+        .btn-danger:hover { background: #fecaca; }
+
+        /* Excel Buton Stili */
+        .btn-excel { 
+            background-color: #1D6F42; 
+            color: white; 
+            padding: 10px 20px; 
+            font-size: 0.95em;
+            margin-top: 10px;
+        }
+        .btn-excel:hover { background-color: #145230; }
+        
+        /* Results */
+        #results { display: none; margin: 20px; padding: 20px; background: #f0f9ff; border-radius: 8px; border: 1px solid #bae6fd; animation: fadeIn 0.5s ease; }
+        .winner-box { background: white; padding: 15px; border-radius: 8px; border-left: 5px solid var(--secondary); box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 15px; }
+        
+        .result-table { width: 100%; border-collapse: collapse; margin-top: 10px; background: white; }
+        .result-table th { background: var(--primary); color: white; padding: 10px; text-align: left; font-size: 0.9rem; }
+        .result-table td { padding: 10px; border-bottom: 1px solid #eee; }
+        .result-table tr:first-child td { background-color: #ecfdf5; }
+        
+        .highlight-cost { font-weight: bold; color: var(--primary); }
+        .highlight-gain { color: var(--secondary); font-weight: bold; }
+
+        /* Footer */
+        .footer { text-align: center; padding: 20px; color: #9ca3af; font-size: 0.85rem; border-top: 1px solid var(--border); margin-top: 20px; }
+        .support-info { display: none; margin-top: 10px; color: var(--text-main); background: #f3f4f6; padding: 10px; border-radius: 4px; display: inline-block; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="app-header">
+        <div class="app-title">
+            <h1><i class="fas fa-balance-scale"></i> Dinamik Vade-Kur Analizi</h1>
+            <p style="margin:0; opacity:0.8; font-size:0.85rem; font-weight:300;">Erdinç Tetik - Karar Destek Aracı</p>
+        </div>
+        <div class="header-meta">
+            <span id="currentDate"></span>
+        </div>
+    </div>
+
+    <div class="info-alert">
+        <i class="fas fa-info-circle fa-2x"></i>
+        <div>
+                <strong>Piyasa Referansı:</strong> TCMB verilerini manuel teyit ediniz. Dövizli işlemlerde 
+                <strong>"Ö" (Ödeme Günü)</strong> veya <strong>"T" (Teslim Günü)</strong> kur seçimini mutlaka belirtiniz.
+                <br>
+                <a href="https://www.tcmb.gov.tr/wps/wcm/connect/tr/tcmb+tr/main+page+site+area/bugun" target="_blank" style="color: #047857; font-weight: bold; text-decoration: underline;">
+                    TCMB Güncel Kurlar
+                </a>
+            </div>
+    </div>
+
+    <div class="settings-accordion">
+        <div class="accordion-header" onclick="toggleAccordion('settingsPanel', 'accIcon1')">
+            <span><i class="fas fa-sliders-h"></i> Finansal Parametreler</span>
+            <i class="fas fa-chevron-down" id="accIcon1"></i>
+        </div>
+        <div class="accordion-content active" id="settingsPanel">
+            <div class="settings-grid">
+                <div class="input-group">
+                    <label>Spot USD (Alış)</label>
+                    <input type="number" id="spotUsd" placeholder="..." onchange="updateProjection()">
+                </div>
+                <div class="input-group">
+                    <label>Spot EUR (Alış)</label>
+                    <input type="number" id="spotEur" placeholder="..." onchange="updateProjection()">
+                </div>
+                <div class="input-group">
+                    <label>Yıllık Brüt Faiz (%)</label>
+                    <input type="number" id="annualInterest" value="40">
+                </div>
+                <div class="input-group">
+                    <label>Stopaj Oranı (%)</label>
+                    <input type="number" id="taxRate" value="17.5">
+                </div>
+                <div class="input-group">
+                    <label>Bütçe Kur Sapma Oranı (%) <i class="fas fa-question-circle" title="Güvenlik marjı (+/-)"></i></label>
+                    <input type="number" id="currencyDeviation" value="0" placeholder="+/- %">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="settings-accordion">
+        <div class="accordion-header" onclick="toggleAccordion('projectionPanel', 'accIcon2')">
+            <span><i class="fas fa-chart-line"></i> 2026 Bazlı & 2027 Tahmini Kur Tablosu</span>
+            <i class="fas fa-chevron-down" id="accIcon2"></i>
+        </div>
+        <div class="accordion-content" id="projectionPanel"> 
+            <button class="btn-tcmb" onclick="window.open('https://www.tcmb.gov.tr/wps/wcm/connect/tr/tcmb+tr/main+page+site+area/bugun', '_blank')">
+                <i class="fas fa-external-link-alt"></i> TCMB Kurlarını Manuel Kontrol Etmek İçin Tıklayın
+            </button>
+
+            <div class="projection-controls">
+                <span><strong>2027 Yılı Artış Hızı (%):</strong></span>
+                <input type="number" id="projRate" value="35" title="Örn: 100 girilirse 2026 ile aynı hızda artar.">
+                <button class="btn-update" onclick="updateProjection()"><i class="fas fa-sync-alt"></i> Tabloyu Güncelle</button>
+                <span style="font-size:0.8em; color:#666; margin-left:auto;">(100=Aynı Trend, 0=Sabit)</span>
+            </div>
+
+            <div class="projection-wrapper">
+                <table class="proj-table" id="projectionTable">
+                    <thead>
+                        <tr>
+                            <th>Dönem (Ay/Yıl)</th>
+                            <th>USD Beklentisi</th>
+                            <th>EUR Beklentisi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="projectionBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <h3 style="color: var(--primary); margin-bottom: 15px; margin-left: 25px;">Teklif Karşılaştırma</h3>
+    
+    <div class="table-responsive">
+        <table class="main-table" id="offersTable">
+            <thead>
+                <tr>
+                    <th style="width: 25%;">Firma Adı</th>
+                    <th style="width: 15%;">Teklif Fiyatı</th>
+                    <th style="width: 25%;">Para Birimi & Kur Tipi</th>
+                    <th style="width: 15%;">Teslim (Gün)</th>
+                    <th style="width: 15%;">Vade (Gün)</th>
+                    <th style="width: 10%;">İşlem</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <button class="btn btn-add" onclick="addRow()"><i class="fas fa-plus"></i> Yeni Teklif Ekle</button>
+    
+    <div style="margin: 30px 0; text-align:center;">
+        <button class="btn btn-primary" onclick="calculate()" style="width:250px; padding:15px; font-size:1.1rem;"><i class="fas fa-calculator"></i> Analizi Çalıştır</button>
+    </div>
+
+    <div id="results">
+        <div id="winnerCard" class="winner-box"></div>
+        
+        <table class="result-table" id="resultTable">
+            <thead>
+                <tr>
+                    <th>Firma</th>
+                    <th>Fatura Tutarı</th>
+                    <th>Teklif TL Karşılığı <small>(Bugün)</small></th>
+                    <th>Vade Sonu TL</th>
+                    <th>Faiz Getirisi <small>(Fırsat)</small></th>
+                    <th>Efektif Maliyet <small>(Net)</small></th>
+                    <th>Hedef Fiyat <small>(Başa Baş)</small></th>
+                </tr>
+            </thead>
+            <tbody id="resultBody"></tbody>
+        </table>
+
+        <div style="text-align: right; margin-top: 15px;">
+            <button class="btn btn-excel" onclick="exportToExcel()">
+                <i class="fas fa-file-excel"></i> Excel Raporu İndir
+            </button>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Bu araç <strong>Erdinç Tetik</strong> tarafından geliştirilmiştir. <br> 
+        <span style="font-size: 0.8em; color: #9ca3af;">(Yasal Uyarı: Sonuçlar piyasa simülasyonudur, bağlayıcılığı yoktur.)</span></p>
+        <div style="margin-top: 10px;">
+            <a href="https://www.linkedin.com/in/erdinctetik/" target="_blank"><i class="fab fa-linkedin"></i> LinkedIn Profilim</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- SABİTLER VE VERİLER ---
+    const API_URL = "https://open.er-api.com/v6/latest/USD";
+    const MONTH_NAMES = ["Oca", "Şub", "Mar", "Nis", "May", "Haz", "Tem", "Ağu", "Eyl", "Eki", "Kas", "Ara"];
+    
+    // 2026 Baz Verileri
+    const BASE_2026_RATES = [
+        { month: "Oca", year: 2026, usd: 44.30, eur: 53.16 },
+        { month: "Şub", year: 2026, usd: 45.10, eur: 54.28 },
+        { month: "Mar", year: 2026, usd: 45.90, eur: 55.40 },
+        { month: "Nis", year: 2026, usd: 46.70, eur: 56.51 },
+        { month: "May", year: 2026, usd: 47.60, eur: 57.62 },
+        { month: "Haz", year: 2026, usd: 48.40, eur: 58.74 },
+        { month: "Tem", year: 2026, usd: 49.30, eur: 59.86 },
+        { month: "Ağu", year: 2026, usd: 50.20, eur: 60.97 },
+        { month: "Eyl", year: 2026, usd: 51.20, eur: 62.09 },
+        { month: "Eki", year: 2026, usd: 52.00, eur: 63.20 },
+        { month: "Kas", year: 2026, usd: 52.80, eur: 64.42 },
+        { month: "Ara", year: 2026, usd: 53.50, eur: 64.74 },
+    ];
+
+    let activeRates = [];
+
+    // --- BAŞLANGIÇ ---
+    window.onload = async () => {
+        document.getElementById('currentDate').innerText = new Date().toLocaleDateString('tr-TR');
+        await fetchSpotRates();
+        updateProjection();
+        addRow();
+        addRow();
+    };
+
+    function toggleAccordion(panelId, iconId) {
+        const panel = document.getElementById(panelId);
+        const icon = document.getElementById(iconId);
+        if (panel.style.display === 'block') {
+            panel.style.display = 'none';
+            icon.classList.remove('fa-chevron-up'); icon.classList.add('fa-chevron-down');
+        } else {
+            panel.style.display = 'block';
+            icon.classList.remove('fa-chevron-down'); icon.classList.add('fa-chevron-up');
+        }
+    }
+
+    async function fetchSpotRates() {
+        try {
+            const res = await fetch(API_URL);
+            const data = await res.json();
+            const usd = data.rates.TRY;
+            const eur = usd / data.rates.EUR;
+            document.getElementById('spotUsd').value = usd.toFixed(2);
+            document.getElementById('spotEur').value = eur.toFixed(2);
+        } catch {
+            document.getElementById('spotUsd').value = "43.50";
+            document.getElementById('spotEur').value = "50.10";
+        }
+    }
+
+    function updateProjection() {
+        activeRates = [...BASE_2026_RATES];
+        
+        const percentage = parseFloat(document.getElementById('projRate').value) || 0;
+        const multiplier = percentage / 100;
+
+        const startUsd = BASE_2026_RATES[0].usd;
+        const endUsd = BASE_2026_RATES[11].usd;
+        const avgDeltaUsd = (endUsd - startUsd) / 11;
+
+        const startEur = BASE_2026_RATES[0].eur;
+        const endEur = BASE_2026_RATES[11].eur;
+        const avgDeltaEur = (endEur - startEur) / 11;
+
+        const newDeltaUsd = avgDeltaUsd * multiplier;
+        const newDeltaEur = avgDeltaEur * multiplier;
+
+        let lastUsd = endUsd;
+        let lastEur = endEur;
+
+        for (let i = 0; i < 12; i++) {
+            lastUsd += newDeltaUsd;
+            lastEur += newDeltaEur;
+            activeRates.push({
+                month: MONTH_NAMES[i],
+                year: 2027,
+                usd: lastUsd,
+                eur: lastEur,
+                isProjected: true
+            });
+        }
+        renderProjectionTable();
+    }
+
+    function renderProjectionTable() {
+        const tbody = document.getElementById('projectionBody');
+        tbody.innerHTML = '';
+        activeRates.forEach((rate, index) => {
+            const tr = document.createElement('tr');
+            if(rate.isProjected) tr.classList.add('projected-row');
+            tr.innerHTML = `
+                <td style="font-weight:600; color:#4b5563;">${rate.month} ${rate.year}</td>
+                <td><input type="number" step="0.01" value="${rate.usd.toFixed(2)}" oninput="updateManualRate(${index}, 'usd', this.value)"></td>
+                <td><input type="number" step="0.01" value="${rate.eur.toFixed(2)}" oninput="updateManualRate(${index}, 'eur', this.value)"></td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function updateManualRate(index, type, value) {
+        const val = parseFloat(value);
+        if(!isNaN(val)) activeRates[index][type] = val;
+    }
+
+    function addRow() {
+        const tbody = document.querySelector('#offersTable tbody');
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td><input type="text" placeholder="Firma Adı" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;"></td>
+            <td><input type="text" class="price-input" placeholder="0,00" oninput="formatInput(this)" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;"></td>
+            <td>
+                <div class="currency-wrapper">
+                    <select class="curr-select" onchange="checkType(this)" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;">
+                        <option value="TL">TL</option>
+                        <option value="USD">USD</option>
+                        <option value="EUR">EUR</option>
+                    </select>
+                    <select class="type-select" disabled style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;">
+                        <option value="Ö" title="Ödeme Günü">Ö</option>
+                        <option value="T" title="Teslim Günü">T</option>
+                    </select>
+                </div>
+            </td>
+            <td><input type="number" class="del-input" placeholder="0" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;"></td>
+            <td><input type="number" class="term-input" placeholder="0" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;"></td>
+            <td><button class="btn btn-danger" onclick="this.closest('tr').remove()"><i class="fas fa-trash"></i></button></td>
+        `;
+        tbody.appendChild(tr);
+    }
+
+    function checkType(sel) {
+        const typeSel = sel.parentElement.querySelector('.type-select');
+        typeSel.disabled = (sel.value === 'TL');
+    }
+
+    function formatInput(input) {
+        let val = input.value.replace(/[^0-9,.]/g, '');
+        input.value = val;
+    }
+
+    function getCurrencyRate(dayOffset, currency) {
+        if (currency === 'TL') return 1;
+        if (dayOffset <= 5) {
+            return currency === 'USD' ? 
+                   parseFloat(document.getElementById('spotUsd').value) : 
+                   parseFloat(document.getElementById('spotEur').value);
+        }
+        const deviation = parseFloat(document.getElementById('currencyDeviation').value) || 0;
+        const deviationMultiplier = 1 + (deviation / 100);
+        
+        const today = new Date();
+        const futureDate = new Date(today);
+        futureDate.setDate(today.getDate() + dayOffset);
+        
+        const fYear = futureDate.getFullYear();
+        const fMonth = MONTH_NAMES[futureDate.getMonth()];
+        let entry = activeRates.find(r => r.month === fMonth && r.year === fYear);
+
+        if (entry) {
+            const baseRate = currency === 'USD' ? entry.usd : entry.eur;
+            return baseRate * deviationMultiplier;
+        } else {
+            const spot = currency === 'USD' ? parseFloat(document.getElementById('spotUsd').value) : parseFloat(document.getElementById('spotEur').value);
+            return spot * deviationMultiplier;
+        }
+    }
+
+    function calculate() {
+        const annualInt = parseFloat(document.getElementById('annualInterest').value) || 0;
+        const taxRate = parseFloat(document.getElementById('taxRate').value) || 0;
+        const netAnnual = annualInt * (1 - (taxRate/100));
+        const dailyRate = (netAnnual / 100) / 365;
+
+        const spotUsd = parseFloat(document.getElementById('spotUsd').value);
+        const spotEur = parseFloat(document.getElementById('spotEur').value);
+
+        const rows = document.querySelectorAll('#offersTable tbody tr');
+        let offers = [];
+
+        rows.forEach((row, i) => {
+            const name = row.querySelector('input[type="text"]').value || `Teklif ${i+1}`;
+            const priceVal = row.querySelector('.price-input').value;
+            const price = parseFloat(priceVal.replace(/\./g, '').replace(',', '.')) || 0;
+            
+            if(price > 0) {
+                const curr = row.querySelector('.curr-select').value;
+                const type = row.querySelector('.type-select').value;
+                const del = parseFloat(row.querySelector('.del-input').value) || 0;
+                const term = parseFloat(row.querySelector('.term-input').value) || 0;
+                let usedRate = 1;
+                let daysLookup = 0;
+
+                if(curr !== 'TL') {
+                    daysLookup = (type === 'Ö') ? (del + term) : del;
+                    usedRate = getCurrencyRate(daysLookup, curr);
+                }
+
+                const priceInTLToday = (curr === 'TL') ? price : (price * (curr==='USD' ? spotUsd : spotEur));
+                const priceInTLMaturity = price * usedRate;
+                const totalDuration = del + term;
+                const gain = priceInTLMaturity * dailyRate * totalDuration;
+                const effCost = priceInTLMaturity - gain;
+
+                offers.push({
+                    name, price, curr, type,
+                    priceInTLToday, priceInTLMaturity, usedRate, totalDuration, gain, effCost
+                });
+            }
+        });
+
+        if(offers.length === 0) return alert("Lütfen en az bir geçerli teklif giriniz.");
+        offers.sort((a,b) => a.effCost - b.effCost);
+        renderResults(offers, dailyRate);
+    }
+
+    function renderResults(offers, dailyRate) {
+        document.getElementById('results').style.display = 'block';
+        const tbody = document.getElementById('resultBody');
+        tbody.innerHTML = '';
+        const best = offers[0];
+
+        // Girdi Özet Bilgileri Alınıyor
+        const valInterest = parseFloat(document.getElementById('annualInterest').value) || 0;
+        const valTax = parseFloat(document.getElementById('taxRate').value) || 0;
+        const valDev = parseFloat(document.getElementById('currencyDeviation').value) || 0;
+
+        document.getElementById('winnerCard').innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <h3 style="margin:0; color:#065f46;">🏆 En Avantajlı: ${best.name}</h3>
+                    <div style="margin-top:5px; color:#4b5563;">
+                        Fatura Tutarı: <strong>${fmt(best.price, best.curr)}</strong>
+                        <i class="fas fa-arrow-right" style="font-size:0.8em; margin:0 5px;"></i> 
+                        Net Maliyet: <strong>${fmt(best.effCost)} TL</strong>
+                    </div>
+                </div>
+                <div style="text-align:right; font-size:0.9rem; color:#4b5563; line-height:1.4;">
+                    <strong>Girdi Özet:</strong><br>
+                    Brüt Faiz: %${fmt(valInterest)} / Stopaj: %${fmt(valTax)} <br>
+                    Bütçe Sapma: %${fmt(valDev)}
+                </div>
+            </div>
+        `;
+
+        offers.forEach((o, i) => {
+            const factor = 1 - (dailyRate * o.totalDuration);
+            let target = 0;
+            if(factor > 0) target = best.effCost / (o.usedRate * factor);
+            
+            const tr = document.createElement('tr');
+            
+            // Kur bilgisi hazırlığı (Efektif maliyetin altına gelecek)
+            let rateInfo = '';
+            if (o.curr !== 'TL') {
+                const typeText = o.type === 'Ö' ? 'Ödeme Tarihi Kuru' : 'Teslim Tarihi Kuru';
+                rateInfo = `<br><span style="font-size:0.8em; color:#666; font-weight:normal;">(${typeText}: ${fmt(o.usedRate)})</span>`;
+            }
+
+            tr.innerHTML = `
+                <td><strong>${o.name}</strong></td>
+                <td>${fmt(o.price, o.curr)}</td>
+                <td>${fmt(o.priceInTLToday)} TL</td>
+                <td>${fmt(o.priceInTLMaturity)} TL</td>
+                <td class="highlight-gain">${fmt(o.gain)} TL</td>
+                <td class="highlight-cost">${fmt(o.effCost)} TL ${rateInfo}</td>
+                <td>${i===0 ? '<i class="fas fa-check-circle" style="color:green"></i>' : fmt(target, o.curr)}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+        document.getElementById('results').scrollIntoView({behavior:'smooth'});
+    }
+
+    function fmt(n, c='') {
+        return new Intl.NumberFormat('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2}).format(n) + (c ? ' '+c : '');
+    }
+
+// --- EXCEL DIŞA AKTARMA FONKSİYONU (RENK TAŞMA SORUNU KÖKTEN ÇÖZÜLDÜ) ---
+function exportToExcel() {
+    const date = new Date().toLocaleDateString('tr-TR');
+    const spotUsd = document.getElementById('spotUsd').value;
+    const spotEur = document.getElementById('spotEur').value;
+    const interest = document.getElementById('annualInterest').value;
+    const tax = document.getElementById('taxRate').value;
+    const deviation = document.getElementById('currencyDeviation').value || "0";
+
+    // 1. ADIM: Başlıklar ve Sabit Bilgiler
+    // Dikkat: Rengi <tr>'ye değil, içindeki <td>'ye veriyoruz.
+    let tableHTML = `
+        <meta charset="utf-8">
+        <table border="1" style="font-family: Arial, sans-serif; border-collapse: collapse;">
+            <tr>
+                <td colspan="8" style="background-color: #2c3e50; color: white; font-size: 16px; font-weight: bold; text-align: center; height: 40px; vertical-align: middle;">
+                    VADE / KUR MUKAYESE ANALİZ RAPORU
+                </td>
+            </tr>
+            <tr>
+                <td colspan="8" style="background-color: #f2f2f2; padding: 10px; color: #333;">
+                    <strong>Tarih:</strong> ${date} <br>
+                    <strong>Kur Bilgisi:</strong> USD: ${spotUsd} | EUR: ${spotEur} <br>
+                    <strong>Girdi Özet:</strong> Brüt Faiz: %${interest} | Stopaj: %${tax} | Sapma: %${deviation}
+                </td>
+            </tr>
+            <tr><td colspan="8"></td></tr>
+            <tr>
+                <th style="background-color: #2c3e50; color: white; text-align: left; padding: 5px; border: 1px solid #ccc;">Sıra</th>
+                <th style="background-color: #2c3e50; color: white; text-align: left; padding: 5px; border: 1px solid #ccc;">Firma</th>
+                <th style="background-color: #2c3e50; color: white; text-align: left; padding: 5px; border: 1px solid #ccc;">Fatura Tutarı</th>
+                <th style="background-color: #2c3e50; color: white; text-align: left; padding: 5px; border: 1px solid #ccc;">Teklif TL Karşılığı (Bugün)</th>
+                <th style="background-color: #2c3e50; color: white; text-align: left; padding: 5px; border: 1px solid #ccc;">Vade Sonu TL</th>
+                <th style="background-color: #2c3e50; color: white; text-align: left; padding: 5px; border: 1px solid #ccc;">Vade Kazancı (Faiz)</th>
+                <th style="background-color: #2c3e50; color: white; text-align: left; padding: 5px; border: 1px solid #ccc;">Net Maliyet</th>
+                <th style="background-color: #2c3e50; color: white; text-align: left; padding: 5px; border: 1px solid #ccc;">Başa Baş Fiyat</th>
+            </tr>
+    `;
+
+    // 2. ADIM: Satırları Döngüyle Ekle
+    const rows = document.querySelectorAll('#resultTable tbody tr');
+    rows.forEach((row, index) => {
+        
+        // Stil Ayarlaması: Sadece 1. satır (index 0) yeşil olsun
+        let cellBackground = (index === 0) ? 'background-color: #d4edda;' : 'background-color: #ffffff;';
+        let cellColor = (index === 0) ? 'color: #155724; font-weight: bold;' : 'color: #000000;';
+        
+        // Ortak Hücre Stili
+        let baseStyle = `padding: 5px; vertical-align: middle; border: 1px solid #ccc; ${cellBackground} ${cellColor}`;
+
+        // Satır başlangıcı (Burada style YOK, bu sayede taşma yapmaz)
+        tableHTML += `<tr>`;
+        
+        // Sıra No Hücresi
+        tableHTML += `<td style="${baseStyle}">${index + 1}</td>`;
+        
+        // Diğer Veri Hücreleri
+        const cols = row.querySelectorAll('td');
+        cols.forEach(col => {
+            let text = col.innerText.replace('ℹ️', '').trim();
+            text = text.replace(/\n/g, ' '); // Alt satıra geçmeleri boşluk yap
+            
+            // Stili hücreye (td) veriyoruz
+            tableHTML += `<td style="${baseStyle}">${text}</td>`;
+        });
+
+        tableHTML += `</tr>`;
+    });
+
+    // 3. ADIM: Kapanış
+    tableHTML += `
+            <tr><td colspan="8"></td></tr>
+            <tr>
+                <td colspan="8" style="text-align: right; font-size: 10px; color: #666; font-style: italic;">
+                    Bu rapor Erdinç Tetik tarafından geliştirilen Dinamik Satınalma Karar Aracı ile oluşturulmuştur.
+                </td>
+            </tr>
+        </table>
+    `;
+
+    // İndirme İşlemi
+    const blob = new Blob(['\uFEFF' + tableHTML], { type: 'application/vnd.ms-excel' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Analiz_Raporu_${date}.xls`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+}
+</script>
+
+</body>
+</html>
