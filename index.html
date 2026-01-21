@@ -67,7 +67,12 @@
         .projected-row input { color: #dc2626; font-style: italic; font-weight: 500; }
 
         /* Main Offer Table */
-        .table-responsive { overflow-x: auto; margin: 20px; border: 1px solid var(--border); border-radius: 8px; }
+        .table-responsive {
+    width: 100%;
+    overflow-x: auto; /* Geniş tabloyu sağa kaydırılabilir yapar */
+    -webkit-overflow-scrolling: touch; /* Mobilde akıcı kaydırma sağlar */
+    margin-bottom: 15px;
+}
         .main-table { width: 100%; border-collapse: collapse; min-width: 800px; }
         .main-table th { background: #f9fafb; padding: 12px; text-align: left; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); border-bottom: 2px solid var(--border); }
         .main-table td { padding: 10px; border-bottom: 1px solid var(--border); }
@@ -113,6 +118,30 @@
         .support-info { display: none; margin-top: 10px; color: var(--text-main); background: #f3f4f6; padding: 10px; border-radius: 4px; display: inline-block; }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+/* MOBİL UYUMLULUK AYARLARI */
+@media (max-width: 768px) {
+    body { padding: 10px; font-size: 13px; }
+    .container { border-radius: 0; }
+    
+    /* Başlığı alt alta getirir */
+    .app-header { padding: 15px; flex-direction: column; text-align: center; gap: 10px; }
+    .header-meta { text-align: center; }
+    
+    /* Ayarlar kutularını tek sütun yapar */
+    .settings-grid { grid-template-columns: 1fr; gap: 10px; }
+    
+    /* Güncelleme butonlarını dikey yapar */
+    .projection-controls { flex-direction: column; align-items: stretch; gap: 10px; }
+    .projection-controls input { width: 100%; }
+    
+    /* Butonları tam genişlik yapar (dokunması kolay olsun diye) */
+    .btn-add { margin: 0 10px; width: calc(100% - 20px); justify-content: center; }
+    .btn-primary { width: 100% !important; border-radius: 0; }
+    
+    /* Kazanan kutusunu dikey yapar */
+    .winner-box { flex-direction: column; text-align: center; gap: 10px; }
+    .winner-box div { text-align: center !important; }
+}
     </style>
 </head>
 <body>
@@ -227,9 +256,10 @@
         <button class="btn btn-primary" onclick="calculate()" style="width:250px; padding:15px; font-size:1.1rem;"><i class="fas fa-calculator"></i> Analizi Çalıştır</button>
     </div>
 
-    <div id="results">
-        <div id="winnerCard" class="winner-box"></div>
-        
+ <div id="results">
+    <div id="winnerCard" class="winner-box"></div>
+    
+    <div class="table-responsive">
         <table class="result-table" id="resultTable">
             <thead>
                 <tr>
@@ -244,13 +274,12 @@
             </thead>
             <tbody id="resultBody"></tbody>
         </table>
-
-        <div style="text-align: right; margin-top: 15px;">
-            <button class="btn btn-excel" onclick="exportToExcel()">
-                <i class="fas fa-file-excel"></i> Excel Raporu İndir
-            </button>
-        </div>
+    </div> <div style="text-align: right; margin-top: 15px;">
+        <button class="btn btn-excel" onclick="exportToExcel()">
+            <i class="fas fa-file-excel"></i> Excel Raporu İndir
+        </button>
     </div>
+</div>
 
     <div class="footer">
         <p>Bu araç <strong>Erdinç Tetik</strong> tarafından geliştirilmiştir. <br> 
